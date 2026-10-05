@@ -1,0 +1,9 @@
+# .regal/config.yaml
+version: 1
+
+# Global configurations
+# rules:
+#   idiomatic:
+#     custom-assign:
+#       level: ignore  # Example of how to ignore a specific rule
+
