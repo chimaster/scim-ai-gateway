@@ -1,9 +1,9 @@
 # SCIM AI-Agent Identity & Governance Gateway
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/org/scim-ai-gateway?style=flat-square)](https://golang.org)
+<!-- [![Go Version](https://img.shields.io/github/go-mod/go-version/org/scim-ai-gateway?style=flat-square)](https://golang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/org/scim-ai-gateway/ci.yml?branch=main&style=flat-square)](https://github.com/org/scim-ai-gateway/actions)
-[![Coverage Status](https://img.shields.io/codecov/c/github/org/scim-ai-gateway?style=flat-square)](https://codecov.io/gh/org/scim-ai-gateway)
+[![Coverage Status](https://img.shields.io/codecov/c/github/org/scim-ai-gateway?style=flat-square)](https://codecov.io/gh/org/scim-ai-gateway)-->
 
 The **SCIM AI-Agent Identity & Governance Gateway** is an ultra-low-latency, zero-allocation enforcement point for managing autonomous AI agent identities, enterprise access scopes, and real-time capability revocations. 
 
