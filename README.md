@@ -1,4 +1,4 @@
-# SCIM AI-Agent Identity & Governance Gateway
+# SCIM AI-Agent Identity & Governance Gateway 
 
 <!-- [![Go Version](https://img.shields.io/github/go-mod/go-version/org/scim-ai-gateway?style=flat-square)](https://golang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
@@ -346,3 +346,5 @@ spec:
 ## License
 
 Distributed under the MIT License. See `LICENSE` for details.
+
+[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=chimaster&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/chimaster)
