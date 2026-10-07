@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+# 1. Choose when the automation runs (Triggers)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# 2. Define the tasks (Jobs)
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest  # The cloud environment provided by GitHub
+
+    steps:
+      # Step 1: Pull code from your repository into the runner
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Install the required version of Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 3: Install project packages
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Run your automated test suite
+      - name: Run Tests
+        run: npm test
+
+  # 3. Continuous Deployment (CD) Job
+  deploy:
+    needs: build-and-test  # Only run deployment if tests pass!
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy Application
+        run: echo "Insert your cloud deployment command here (AWS, Vercel, Docker, etc.)"
