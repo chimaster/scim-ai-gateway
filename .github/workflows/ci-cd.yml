@@ -11,24 +11,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Pull your Go code into the runner
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Set up the Go environment
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22' # <-- Change this to match your go.mod version
+          go-version: '1.22'
 
-      # Step 3: Fetch dependencies (equivalent to npm install)
-      - name: Install Dependencies
-        run: go mod download
-
-      # Step 4: Run your Go tests
-      - name: Run Tests
-        run: go test -v ./...
-
-      # Step 5: Verify the app compiles successfully
-      - name: Build Binary
-        run: go build -v ./...
+      # Run the exact benchmark suite specified in your README
+      - name: Run Performance Benchmarks
+        run: go test -bench=. -benchmem -benchtime=10s ./...
