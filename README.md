@@ -1,4 +1,4 @@
-[![Buy My Dog a Treat](https://img.buymeacoffee.com/button-api/?text=Buy%20Cliff%20a%20treat&emoji=%F0%9F%A6%B4&slug=chimaster&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/chimaster)
+[![Buy My Dog a Treat](https://img.buymeacoffee.com/button-api/?text=Buy%20Cliff%20a%20dog%20treat&emoji=%F0%9F%A6%B4&slug=chimaster&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/chimaster)
 
 # SCIM AI-Agent Identity & Governance Gateway 
 
@@ -74,7 +74,7 @@ By integrating **SCIM 2.0 (RFC 7643 / RFC 7644)** standards with embedded **Open
 
 ## Performance Benchmarks
 
-All benchmarks are automatically executed in our GitHub Actions CI pipeline on fresh Linux runners (`ubuntu-latest`, 2 vCPU, 7 GB RAM) with Go 1.22.
+All benchmarks are automatically executed in our GitHub Actions CI pipeline on fresh Linux runners (`ubuntu-latest`, 4 vCPU, 16 GB RAM) with Go 1.22.
 
 ```bash
 go test -bench=. -benchmem -benchtime=10s ./pkg/api/...
@@ -84,10 +84,8 @@ go test -bench=. -benchmem -benchtime=10s ./pkg/api/...
 
 | Benchmark Test Name | Iterations | Time / Op | Memory / Op | Allocations / Op |
 | :--- | :--- | :--- | :--- | :--- |
-| `BenchmarkOPA_Evaluation` | 28,491,202 | **0.38 ms** | 128 B | 1 allocs/op |
-| `BenchmarkRevocationCheck_Active` | 891,204,118 | **0.12 ns** | **0 B** | **0 allocs/op** |
-| `BenchmarkRevocationCheck_Revoked` | 912,401,902 | **0.11 ns** | **0 B** | **0 allocs/op** |
-| `BenchmarkSCIM_AgentProvisioning` | 1,482,019 | **6.72 µs** | 1.12 KB | 12 allocs/op |
+|`BenchmarkEvaluateParallel`   |   	 1455240	 |     8146 ns/op	|    5390 B/op	   |  103 allocs/op
+|`BenchmarkCascadingRevocation` |  	25717729	|       459.1 ns/op	|      13 B/op	  |     1 allocs/op
 
 > **Note:** The zero-allocation revocation mechanism relies on contiguous atomic bitmask arrays indexed via agent numeric hashes, bypassing conventional mutex contention and garbage collection pauses.
 
