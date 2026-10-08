@@ -107,8 +107,9 @@ func BenchmarkEvaluateParallel(b *testing.B) {
 func BenchmarkCascadingRevocation(b *testing.B) {
 	_, memStore := setupTestServer(b)
 
-	// 1. Pre-seed the data store with ALL required items *before* running metrics
-	for i := 0; i < b.N; i++ {
+	// 1. Seed a large, FIXED baseline of data *instead* of scaling with b.N
+	const fixedUserCount = 1000
+	for i := 0; i < fixedUserCount; i++ {
 		userID := fmt.Sprintf("usr-%d", i)
 		memStore.SaveUser(&scim.User{ID: userID, Active: true})
 
@@ -125,10 +126,10 @@ func BenchmarkCascadingRevocation(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	// 3. Keep the loop hot and uninterrupted
+	// 3. Keep the loop hot, safely wrapping back to 0 using modulo (%) 
+	// to prevent looking up non-existent users when b.N exceeds fixedUserCount.
 	for i := 0; i < b.N; i++ {
-		userID := fmt.Sprintf("usr-%d", i)
-		// Run pure revocation mechanics without timer interruptions
+		userID := fmt.Sprintf("usr-%d", i % fixedUserCount)
 		_ = memStore.SetUserActive(userID, false)
 	}
 }
