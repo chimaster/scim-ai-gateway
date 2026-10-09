@@ -86,8 +86,6 @@ go test -bench=. -benchmem -benchtime=10s ./pkg/api/...
 |`BenchmarkEvaluateParallel`   |   	 1455240	 |  **8.15 µs** (8146 ns)	|    5390 B	   |  103 allocs
 |`BenchmarkCascadingRevocation` |  	25717729	|   **0.46 µs** (459.1 ns)	|      13 B	  |     1 allocs
 
-> **Note:** The zero-allocation revocation mechanism relies on contiguous atomic bitmask arrays indexed via agent numeric hashes, bypassing conventional mutex contention and garbage collection pauses.
-
 ---
 
 ## SCIM 2.0 Schema Extensions for AI Agents
