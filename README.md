@@ -31,7 +31,7 @@ By integrating **SCIM 2.0 (RFC 7643 / RFC 7644)** standards with embedded **Open
 ## Key Features
 
 - **SCIM 2.0 AI Extensions**: Provision, update, and deprivision AI Agents using standard Identity Provider (IdP) integrations (e.g., Okta, Entra ID, Ping Identity).
-- **Sub-Millisecond Policy Evaluation**: Embedded OPA Go library (`github.com/open-policy-agent/opa/rego`) delivering evaluation latencies under **0.5ms**.
+- **Sub-Millisecond Policy Evaluation**: Embedded OPA Go library (`github.com/open-policy-agent/opa/rego`) delivering evaluation latencies under **10 µs** and revocation checks under **0.5 µs**.
 - **Zero-Alloc Real-Time Revocation Engine**: Lock-free concurrent bitmask engine (`sync/atomic` + `atomic.Uint64` lookup arrays) for instant agent kill-switch execution without GC overhead.
 - **Strict Scope & Tool Governance**: Restrict LLM tool/function calling by checking enterprise entitlement bounds in real-time.
 - **Audit Compliance & Lineage**: Structured JSON log tracing for all token issuances, capability checks, and dynamic revocations.
@@ -63,7 +63,7 @@ By integrating **SCIM 2.0 (RFC 7643 / RFC 7644)** standards with embedded **Open
 │  └─────────────────────────────────────┬────────────────────┘               │
 └────────────────────────────────────────┼────────────────────────────────────┘
                                          │ 
-                                 <0.5ms  │ Authorization Decision
+                                 <10 µs  │ Authorization Decision
                                          ▼
                  ┌──────────────────────────────────────────────┐
                  │ Autonomous AI Agent / LLM Tool Call Ingress  │
@@ -84,8 +84,8 @@ go test -bench=. -benchmem -benchtime=10s ./pkg/api/...
 
 | Benchmark Test Name | Iterations | Time / Op | Memory / Op | Allocations / Op |
 | :--- | :--- | :--- | :--- | :--- |
-|`BenchmarkEvaluateParallel`   |   	 1455240	 |     8146 ns/op	|    5390 B/op	   |  103 allocs/op
-|`BenchmarkCascadingRevocation` |  	25717729	|       459.1 ns/op	|      13 B/op	  |     1 allocs/op
+|`BenchmarkEvaluateParallel`   |   	 1455240	 |  **8.15 µs** (8146 ns)	|    5390 B	   |  103 allocs
+|`BenchmarkCascadingRevocation` |  	25717729	|   **0.46 µs** (459.1 ns)	|      13 B	  |     1 allocs
 
 > **Note:** The zero-allocation revocation mechanism relies on contiguous atomic bitmask arrays indexed via agent numeric hashes, bypassing conventional mutex contention and garbage collection pauses.
 
@@ -117,64 +117,9 @@ The gateway extends SCIM 2.0 using the core namespace `urn:ietf:params:scim:sche
 
 ---
 
-## SCIM 2.0 API Usage Examples
+## API Endpoints
 
-### 1. Provision a New AI Agent
-
-```bash
-curl -X POST http://localhost:8080/scim/v2/Users \
-  -H "Authorization: Bearer <ADMIN_BEARER_TOKEN>" \
-  -H "Content-Type: application/scim+json" \
-  -d '{
-    "schemas": [
-      "urn:ietf:params:scim:schemas:core:2.0:User",
-      "urn:ietf:params:scim:schemas:extension:ai:1.0:Agent"
-    ],
-    "userName": "agent-finance-analyzer-01",
-    "displayName": "Finance Analyzer Agent",
-    "active": true,
-    "urn:ietf:params:scim:schemas:extension:ai:1.0:Agent": {
-      "agentModel": "claude-3-5-sonnet",
-      "autonomyLevel": "autonomous",
-      "allowedTools": ["read_ledger", "generate_pdf"],
-      "maxTokenBudgetPerDay": 100000,
-      "killSwitchActive": false
-    }
-  }'
-```
-
-### 2. Trigger Real-Time Revocation (Kill Switch)
-
-```bash
-curl -X PATCH http://localhost:8080/scim/v2/Users/agent-finance-analyzer-01 \
-  -H "Authorization: Bearer <ADMIN_BEARER_TOKEN>" \
-  -H "Content-Type: application/scim+json" \
-  -d '{
-    "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-    "Operations": [
-      {
-        "op": "replace",
-        "path": "urn:ietf:params:scim:schemas:extension:ai:1.0:Agent:killSwitchActive",
-        "value": true
-      }
-    ]
-  }'
-```
-
-### 3. Agent Tool Call Governance Verification
-
-```bash
-curl -X POST http://localhost:8080/api/v1/authorize \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_id": "agent-finance-analyzer-01",
-    "tool": "read_ledger",
-    "context": {
-      "ip_address": "10.0.4.12",
-      "request_tokens": 1200
-    }
-  }'
-```
+See https://github.com/chimaster/scim-ai-gateway/blob/main/scripts/test_integration.sh.
 
 ---
 
@@ -183,32 +128,38 @@ curl -X POST http://localhost:8080/api/v1/authorize \
 The gateway loads policy rules at startup or via live reloading. Below is the default policy governing agent execution:
 
 ```rego
-# policy/agent_governance.rego
-package scim.ai.governance
+# policy/rules.rego
+package scim.authz
 
-import future.keywords.in
+# Use the universal v1 compatibility syntax
+import rego.v1
 
+# Default decision is strict deny
 default allow = false
 
-# Allow tool execution if agent is active, kill switch is off, and tool is permitted
-allow {
-    not is_agent_revoked
-    is_tool_permitted
-    is_within_token_budget
+# Allow decision logic
+# Added the 'if' keyword before the conditional body
+allow if {
+	# 1. Agent must be active
+	input.agent.active == true
+
+	# 2. Human Owner must be active
+	input.owner.active == true
+
+	# 3. Execution action must be explicitly allowed for the agent
+	input.action in input.agent.scopes
+
+	# 4. Owner must possess the required enterprise group/role for the target tool
+	user_has_required_group
 }
 
-# Check zero-alloc atomic revocation state passed via dynamic input context
-is_agent_revoked {
-    input.agent.killSwitchActive == true
+# Helper rule: Validate group membership (ReBAC)
+# Added the 'if' keyword here as well
+user_has_required_group if {
+	some group in input.owner.groups
+	group == input.target_required_group
 }
 
-is_tool_permitted {
-    input.requested_tool in input.agent.allowedTools
-}
-
-is_within_token_budget {
-    input.agent.currentTokenUsage + input.requested_tokens <= input.agent.maxTokenBudgetPerDay
-}
 ```
 
 ---
@@ -225,97 +176,25 @@ is_within_token_budget {
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/org/scim-ai-gateway.git
+   git clone https://github.com/chimaster/scim-ai-gateway
    cd scim-ai-gateway
    ```
 
-2. **Install Dependencies & Build**
+2. **Build**
    ```bash
-   make deps
    make build
    ```
 
-3. **Configure Environment**
+3. **Run Server**
    ```bash
-   cp .env.example .env
-   # Edit .env with your desired PORT, ADMIN_TOKEN, and OPA policy path
+   ./bin/gateway
    ```
 
-4. **Run Server**
+4. **Run Benchmarks & Integration Test**
    ```bash
-   ./bin/gateway --config=config.yaml
-   ```
-
-5. **Run Test Suite & Benchmarks**
-   ```bash
-   make test
    make bench
+   make integration
    ```
-
----
-
-## Production Deployment
-
-### Docker Containerization
-
-Generate standard micro-image using Docker multi-stage build:
-
-```dockerfile
-# Dockerfile
-FROM golang:1.22-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o gateway ./cmd/gateway
-
-FROM gcr.io/distroless/static-debian12
-COPY --from=builder /app/gateway /gateway
-COPY --from=builder /app/policy /policy
-EXPOSE 8080 9090
-ENTRYPOINT ["/gateway"]
-```
-
-### Kubernetes Manifest Snippet
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: scim-ai-gateway
-  namespace: security-system
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: scim-ai-gateway
-  template:
-    metadata:
-      labels:
-        app: scim-ai-gateway
-    spec:
-      containers:
-      - name: gateway
-        image: your-registry/scim-ai-gateway:v1.0.0
-        ports:
-        - containerPort: 8080
-          name: http
-        - containerPort: 9090
-          name: metrics
-        resources:
-          limits:
-            cpu: "1"
-            memory: "512Mi"
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-          initialDelaySeconds: 2
-          periodSeconds: 5
-```
 
 ---
 
@@ -331,15 +210,6 @@ spec:
   ```bash
   go tool pprof http://localhost:9090/debug/pprof/profile?seconds=30
   ```
-
-### Live Debugging Common Issues
-
-1. **Slow OPA Evaluations (>0.5ms)**
-   - Verify regex rules inside Rego aren't compiling dynamically per evaluation. Pre-compile using static variables.
-   - Inspect allocation profiles using pprof (`go tool pprof -alloc_objects`).
-
-2. **Revocation Out-of-Sync**
-   - Verify cluster synchronicity when operating multiple stateless gateway pods. Ensure backend redis pub/sub or gRPC state propagation is connected for updating local atomic arrays.
 
 ---
 

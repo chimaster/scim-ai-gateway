@@ -57,6 +57,18 @@ AGENT_RESP=$(curl -s -w "\n%{http_code}" -X POST "${GATEWAY_URL}/scim/v2/Agents"
     -H "Content-Type: application/json" \
     -d '{"id":"agent-1", "displayName": "RAGBot", "active": true, "ownerId":"usr-1", "scopes":["vector:read"]}')
 
+echo "Testing SCIM Agent Creation POST /scim/v2/Agents..."
+AGENT_RESP=$(curl -s -w "\n%{http_code}" -X POST "${GATEWAY_URL}/scim/v2/Agents" \
+    -H "Content-Type: application/scim+json" \
+    -d '{
+      "schemas": ["urn:ietf:params:scim:schemas:core:2.0:Agent"],
+      "id": "agent-1",
+      "displayName": "RAGBot",
+      "active": true,
+      "ownerId": "usr-1",
+      "scopes": ["vector:read"]
+    }')
+
 AGENT_STATUS=$(echo "$AGENT_RESP" | tail -n1)
 if [ "$AGENT_STATUS" -ne 200 ] && [ "$AGENT_STATUS" -ne 201 ]; then
     echo "❌ Agent creation failed with HTTP status $AGENT_STATUS"
@@ -80,7 +92,7 @@ echo "✅ OPA Policy evaluation returned 200 OK!"
 # 6. Test Deactivating User
 echo "Deactivating user usr-1..."
 DEACTIVATE_RESP=$(curl -s -w "\n%{http_code}" -X PATCH "${GATEWAY_URL}/scim/v2/Users/usr-1" \
-    -H "Content-Type: application/json" \
+    -H "Content-Type: application/scim+json" \
     -d '{"Operations":[{"op":"replace","value":{"active":false}}]}')
 
 DEACTIVATE_STATUS=$(echo "$DEACTIVATE_RESP" | tail -n1)

@@ -3,6 +3,7 @@ package scim
 import "time"
 
 type User struct {
+	Schemas  []string `json:"schemas,omitempty"` // Required for SCIM compliance
 	ID       string   `json:"id"`
 	UserName string   `json:"userName"`
 	Active   bool     `json:"active"`
@@ -11,6 +12,7 @@ type User struct {
 }
 
 type Agent struct {
+	Schemas     []string `json:"schemas,omitempty"` // Added for SCIM compliance
 	ID          string   `json:"id"`
 	DisplayName string   `json:"displayName"`
 	Active      bool     `json:"active"`

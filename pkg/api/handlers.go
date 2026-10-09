@@ -40,6 +40,11 @@ func (s *Server) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.store.SaveUser(&user)
+
+	if len(user.Schemas) == 0 {
+		user.Schemas = []string{"urn:ietf:params:scim:schemas:core:2.0:User"}
+	}
+
 	w.Header().Set("Content-Type", "application/scim+json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
@@ -96,6 +101,10 @@ func (s *Server) HandleAgentCreate(w http.ResponseWriter, r *http.Request) {
 	if err := s.store.SaveAgent(&agent); err != nil {
 		scim.WriteError(w, http.StatusBadRequest, "invalidValue", err.Error())
 		return
+	}
+
+	if len(agent.Schemas) == 0 {
+		agent.Schemas = []string{"urn:ietf:params:scim:schemas:core:2.0:Agent"}
 	}
 
 	w.Header().Set("Content-Type", "application/scim+json")
