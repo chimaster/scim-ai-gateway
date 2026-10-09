@@ -22,7 +22,6 @@ By integrating **SCIM 2.0 (RFC 7643 / RFC 7644)** standards with embedded **Open
 - [API Usage Examples](#api-usage-examples)
 - [OPA / Rego Policy Configuration](#opa--rego-policy-configuration)
 - [Quick Start & Setup](#quick-start--setup)
-- [Production Deployment](#production-deployment)
 - [Debugging & Telemetry](#debugging--telemetry)
 - [License](#license)
 
