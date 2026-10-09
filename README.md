@@ -273,7 +273,7 @@ user_has_required_group if {
 ## Debugging & Telemetry
 
 ### Telemetry Signals
-- **Prometheus Metrics**: Exposed by default at `http://localhost:9090/metrics`.
+- **Prometheus Metrics**: Exposed by default at http://localhost:9090/metrics.
   - `gateway_opa_eval_duration_seconds`: Histogram for policy evaluation timing.
   - `gateway_revocation_checks_total`: Total counter for revocation lookups.
   - `gateway_scim_requests_total`: Counter by HTTP method and status code.
