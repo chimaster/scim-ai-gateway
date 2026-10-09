@@ -7,7 +7,6 @@ import rego.v1
 default allow = false
 
 # Allow decision logic
-# Added the 'if' keyword before the conditional body
 allow if {
 	# 1. Agent must be active
 	input.agent.active == true
