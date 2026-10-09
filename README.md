@@ -124,39 +124,37 @@ The gateway extends SCIM 2.0 using the core namespace `urn:ietf:params:scim:sche
 **Content-Type:** `application/json`  
 **Expected Status:** `200 OK` or `201 Created`
 
-#### Request Body
-```json
-{
-  "id": "usr-1",
-  "userName": "sec_engineer@enterprise.com",
-  "active": true,
-  "groups": [
-    "AI-Developers"
-  ]
-}
+#### cURL Request
+```bash
+curl -X POST "${GATEWAY_URL}/scim/v2/Users" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "usr-1",
+    "userName": "sec_engineer@enterprise.com",
+    "active": true,
+    "groups": ["AI-Developers"]
+  }'
 ```
 
 ---
 
 ### 2. Create SCIM Agent
 **Endpoint:** `POST /scim/v2/Agents`  
-**Content-Type:** `application/scim+json` (or `application/json`)  
+**Content-Type:** `application/scim+json`  
 **Expected Status:** `200 OK` or `201 Created`
 
-#### Request Body
-```json
-{
-  "schemas": [
-    "urn:ietf:params:scim:schemas:core:2.0:Agent"
-  ],
-  "id": "agent-1",
-  "displayName": "RAGBot",
-  "active": true,
-  "ownerId": "usr-1",
-  "scopes": [
-    "vector:read"
-  ]
-}
+#### cURL Request
+```bash
+curl -X POST "${GATEWAY_URL}/scim/v2/Agents" \
+  -H "Content-Type: application/scim+json" \
+  -d '{
+    "schemas": ["urn:ietf:params:scim:schemas:core:2.0:Agent"],
+    "id": "agent-1",
+    "displayName": "RAGBot",
+    "active": true,
+    "ownerId": "usr-1",
+    "scopes": ["vector:read"]
+  }'
 ```
 
 ---
@@ -164,39 +162,39 @@ The gateway extends SCIM 2.0 using the core namespace `urn:ietf:params:scim:sche
 ### 3. Evaluate Policy (OPA)
 **Endpoint:** `POST /v1/evaluate`  
 **Content-Type:** `application/json`  
+**Expected Status:** `200 OK` or `403 Forbidden`
 
-#### Request Body
-```json
-{
-  "agentId": "agent-1",
-  "action": "vector:read",
-  "targetRequiredGroup": "AI-Developers"
-}
+#### cURL Request
+```bash
+curl -X POST "${GATEWAY_URL}/v1/evaluate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "agent-1",
+    "action": "vector:read",
+    "targetRequiredGroup": "AI-Developers"
+  }'
 ```
-
-#### Response Statuses
-* **`200 OK`**: Allowed (User is active and belongs to the required group).
-* **`403 Forbidden`**: Denied (User or agent is inactive or lacks required group permissions).
-
 ---
 
 ### 4. Deactivate User
-**Endpoint:** `PATCH /scim/v2/Users/{id}`  
+**Endpoint:** `PATCH /scim/v2/Users/usr-1`  
 **Content-Type:** `application/scim+json`  
 **Expected Status:** `204 No Content`
 
-#### Request Body
-```json
-{
-  "Operations": [
-    {
-      "op": "replace",
-      "value": {
-        "active": false
+#### cURL Request
+```bash
+curl -X PATCH "${GATEWAY_URL}/scim/v2/Users/usr-1" \
+  -H "Content-Type: application/scim+json" \
+  -d '{
+    "Operations": [
+      {
+        "op": "replace",
+        "value": {
+          "active": false
+        }
       }
-    }
-  ]
-}
+    ]
+  }'
 ```
 
 ---
@@ -216,7 +214,6 @@ import rego.v1
 default allow = false
 
 # Allow decision logic
-# Added the 'if' keyword before the conditional body
 allow if {
 	# 1. Agent must be active
 	input.agent.active == true
