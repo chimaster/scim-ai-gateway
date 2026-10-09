@@ -19,7 +19,7 @@ By integrating **SCIM 2.0 (RFC 7643 / RFC 7644)** standards with embedded **Open
 - [System Architecture](#system-architecture)
 - [Performance Benchmarks](#performance-benchmarks)
 - [SCIM 2.0 Schema Extensions for AI Agents](#scim-20-schema-extensions-for-ai-agents)
-- [SCIM 2.0 API Usage Examples](#scim-20-api-usage-examples)
+- [API Usage Examples](#api-usage-examples)
 - [OPA / Rego Policy Configuration](#opa--rego-policy-configuration)
 - [Quick Start & Setup](#quick-start--setup)
 - [Production Deployment](#production-deployment)
@@ -117,9 +117,87 @@ The gateway extends SCIM 2.0 using the core namespace `urn:ietf:params:scim:sche
 
 ---
 
-## API Endpoints
+## API Usage Examples
 
-See https://github.com/chimaster/scim-ai-gateway/blob/main/scripts/test_integration.sh.
+### 1. Create SCIM User
+**Endpoint:** `POST /scim/v2/Users`  
+**Content-Type:** `application/json`  
+**Expected Status:** `200 OK` or `201 Created`
+
+#### Request Body
+```json
+{
+  "id": "usr-1",
+  "userName": "sec_engineer@enterprise.com",
+  "active": true,
+  "groups": [
+    "AI-Developers"
+  ]
+}
+```
+
+---
+
+### 2. Create SCIM Agent
+**Endpoint:** `POST /scim/v2/Agents`  
+**Content-Type:** `application/scim+json` (or `application/json`)  
+**Expected Status:** `200 OK` or `201 Created`
+
+#### Request Body
+```json
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Agent"
+  ],
+  "id": "agent-1",
+  "displayName": "RAGBot",
+  "active": true,
+  "ownerId": "usr-1",
+  "scopes": [
+    "vector:read"
+  ]
+}
+```
+
+---
+
+### 3. Evaluate Policy (OPA)
+**Endpoint:** `POST /v1/evaluate`  
+**Content-Type:** `application/json`  
+
+#### Request Body
+```json
+{
+  "agentId": "agent-1",
+  "action": "vector:read",
+  "targetRequiredGroup": "AI-Developers"
+}
+```
+
+#### Response Statuses
+* **`200 OK`**: Allowed (User is active and belongs to the required group).
+* **`403 Forbidden`**: Denied (User or agent is inactive or lacks required group permissions).
+
+---
+
+### 4. Deactivate User
+**Endpoint:** `PATCH /scim/v2/Users/{id}`  
+**Content-Type:** `application/scim+json`  
+**Expected Status:** `204 No Content`
+
+#### Request Body
+```json
+{
+  "Operations": [
+    {
+      "op": "replace",
+      "value": {
+        "active": false
+      }
+    }
+  ]
+}
+```
 
 ---
 
