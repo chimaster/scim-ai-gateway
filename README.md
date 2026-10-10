@@ -1,4 +1,4 @@
-[![Buy My Dog a Treat](https://img.buymeacoffee.com/button-api/?text=Buy%20Cliff%20a%20dog%20treat&emoji=%F0%9F%A6%B4&slug=chimaster&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/chimaster)
+<!--[![Buy My Dog a Treat](https://img.buymeacoffee.com/button-api/?text=Buy%20My%20Dog%20a%20Treat&emoji=%F0%9F%A6%B4&slug=chimaster&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/chimaster)-->
 
 # SCIM AI-Agent Identity & Governance Gateway 
 
